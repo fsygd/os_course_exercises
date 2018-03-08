@@ -109,7 +109,7 @@ intr的值为0x20003，前16位为3，后16位为2，采用小端
   }
   ```
 
-  首先加载全局描述符到pd中，用USER_DS的值初始化gs和fs，用KERNEL_DS的值初始化es、ds和ss，长跳转到基址为KERNEL_CS，偏移量为标号1的地方。
+  首先加载全局描述符到pd中，用USER_DS的值初始化gs和fs，用KERNEL_DS的值初始化es、ds和ss，长跳转语句用KERNEL_CS初始化cs寄存器。
 
 #### 练习二
 
