@@ -19,41 +19,93 @@
 ## 第三讲 启动、中断、异常和系统调用-思考题
 
 ## 3.1 BIOS
--  x86中BIOS从磁盘读入的第一个扇区是是什么内容？为什么没有直接读入操作系统内核映像？
+- x86中BIOS从磁盘读入的第一个扇区是是什么内容？为什么没有直接读入操作系统内核映像？
+
+  主引导扇区，因为内核映像很大，且内核映像可能有很多不同的格式，无法用统一的指令来读取
+
 - 比较UEFI和BIOS的区别。
-- 理解rcore中的Berkeley BootLoader (BBL)的功能。
+
+  BIOS后续的改进需要兼容早期的版本，而UEFI的目标是提供一个统一的接口标准
 
 ## 3.2 系统启动流程
 
 - x86中分区引导扇区的结束标志是什么？
+
+  0x55AA
+
 - x86中在UEFI中的可信启动有什么作用？
-- RV中BBL的启动过程大致包括哪些内容？
+
+  保证启动的安全性，只有数字签名合法才能正常启动
 
 ## 3.3 中断、异常和系统调用比较
 - 什么是中断、异常和系统调用？
--  中断、异常和系统调用的处理流程有什么异同？
+
+  系统调用：应用程序主动向操作系统发出的服务请求
+
+  异常：指令非法或者因其他原因导致指令执行失败
+
+  中断：来自外部硬件设备的处理请求
+
+- 中断、异常和系统调用的处理流程有什么异同？
+
+  ##### 响应方式
+
+  中断：异步
+
+  异常：同步
+
+  系统调用：异步或同步
+
+  ##### 处理机制
+
+  中断：持续，对应用程序透明
+
+  异常：强制终止或者重新执行之前执行失败的指令
+
+  系统调用：等待和持续
+
 - 以ucore/rcore lab8的answer为例，ucore的系统调用有哪些？大致的功能分类有哪些？
 
-## 3.4 linux系统调用分析
-- 通过分析[lab1_ex0](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex0.md)了解Linux应用的系统调用编写和含义。(仅实践，不用回答)
-- 通过调试[lab1_ex1](https://github.com/chyyuu/ucore_lab/blob/master/related_info/lab1/lab1-ex1.md)了解Linux应用的系统调用执行过程。(仅实践，不用回答)
+  ```c
+  static int (*syscalls[])(uint32_t arg[]) = {
+  
+        [SYS_exit]              sys_exit,
+        [SYS_fork]              sys_fork,
+        [SYS_wait]              sys_wait,
+        [SYS_exec]              sys_exec,
+        [SYS_yield]             sys_yield,
+        [SYS_kill]              sys_kill,
+        [SYS_getpid]            sys_getpid,
+        [SYS_putc]              sys_putc,
+        [SYS_pgdir]             sys_pgdir,
+        [SYS_gettime]           sys_gettime,
+        [SYS_lab6_set_priority] sys_lab6_set_priority,
+        [SYS_sleep]             sys_sleep,
+        [SYS_open]              sys_open,
+        [SYS_close]             sys_close,
+        [SYS_read]              sys_read,
+        [SYS_write]             sys_write,
+        [SYS_seek]              sys_seek,
+        [SYS_fstat]             sys_fstat,
+        [SYS_fsync]             sys_fsync,
+        [SYS_getcwd]            sys_getcwd,
+        [SYS_getdirentry]       sys_getdirentry,
+        [SYS_dup]               sys_dup,
+    };
+  
+  ```
+
+  大致分为进程管理、文件系统和I/O
 
 
-## 3.5 ucore/rcore系统调用分析 （扩展练习，可选）
--  基于实验八的代码分析ucore的系统调用实现，说明指定系统调用的参数和返回值的传递方式和存放位置信息，以及内核中的系统调用功能实现函数。
-- 以ucore/rcore lab8的answer为例，分析ucore 应用的系统调用编写和含义。
-- 以ucore/rcore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
-
- 
 ## 3.6 请分析函数调用和系统调用的区别
 - 系统调用与函数调用的区别是什么？
+
+  系统调用时会有特权级的切换以及对应堆栈的切换，带来了额外的开销
+
+  常规的函数调用没有堆栈的切换
+
 - 通过分析x86中函数调用规范以及`int`、`iret`、`call`和`ret`的指令准确功能和调用代码，比较x86中函数调用与系统调用的堆栈操作有什么不同？
-- 通过分析RV中函数调用规范以及`ecall`、`eret`、`jal`和`jalr`的指令准确功能和调用代码，比较x86中函数调用与系统调用的堆栈操作有什么不同？
 
+  内核的内容需要保护，在系统调用时会有堆栈的切换，从用户态的堆栈切换到内核态的堆栈
 
-## 课堂实践 （在课堂上根据老师安排完成，课后不用做）
-### 练习一
-通过静态代码分析，举例描述ucore/rcore键盘输入中断的响应过程。
-
-### 练习二
-通过静态代码分析，举例描述ucore/rcore系统调用过程，及调用参数和返回值的传递方法。
